@@ -5,7 +5,7 @@
 def pascal_triangle(num):
     """
     Returns a list of list of integers
-    representing the Pascal's triangle of 
+    representing the Pascal's triangle of
     num
     """
     outer = []
