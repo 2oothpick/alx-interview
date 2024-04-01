@@ -1,40 +1,70 @@
-
 #!/usr/bin/python3
 """
-Script reads stdin line by line and computes metrics
+a script that reads stdin line by line and computes metrics
 """
-
-
 import sys
+import os
+import signal
+import re
 
-cache = {'200': 0, '301': 0, '400': 0, '401': 0,
-         '403': 0, '404': 0, '405': 0, '500': 0}
-total_size = 0
-counter = 0
 
-try:
-    for line in sys.stdin:
-        line_list = line.split(" ")
-        if len(line_list) > 4:
-            code = line_list[-2]
-            size = int(line_list[-1])
-            if code in cache.keys():
-                cache[code] += 1
-            total_size += size
+def is_status(status_code: int) -> bool:
+    """
+    Shows if code is a status code
+    """
+    status_list = [
+        200, 301, 400,
+        401, 403, 404,
+        405, 500]
+    if status_code in status_list:
+        return True
+    return False
+
+
+def print_statistics(input: str):
+    """
+    TBD
+    """
+    total_size = 0
+    _stats = {
+        '200': 0, '301': 0, '400': 0,
+        '401': 0, '403': 0, '404': 0,
+        '405': 0, '500': 0}
+    if input != "\t":
+        for line in input.split("\t"):
+            if line != "":
+                try:
+                    split_l1 = line.split("\"")
+                    split_l2 = split_l1[2].split()
+                    total_size += int(split_l2[1])
+                    st = split_l2[0]
+                    if st in _stats.keys():
+                        _stats[st] += 1
+                except Exception:
+                    pass
+        print("File size: {}".format(total_size))
+        for k in _stats:
+            if _stats[k] > 0:
+                print("{}: {}".format(k, _stats[k]))
+
+
+if __name__ == '__main__':
+    max_lines = 10
+    counter = min_val = 0
+    buffer = ""
+    try:
+        while (True):
+            line = input()
             counter += 1
-
-        if counter == 10:
-            counter = 0
-            print('File size: {}'.format(total_size))
-            for key, value in sorted(cache.items()):
-                if value != 0:
-                    print('{}: {}'.format(key, value))
-
-except Exception as err:
-    pass
-
-finally:
-    print('File size: {}'.format(total_size))
-    for key, value in sorted(cache.items()):
-        if value != 0:
-            print('{}: {}'.format(key, value))
+            buffer += line + "\t"
+            if counter == max_lines:
+                counter = min_val
+                print_statistics(buffer)
+                buffer = ""
+    except (KeyboardInterrupt):
+        print_statistics(buffer)
+        buffer = ""
+        raise
+    except (EOFError):
+        pass
+    print_statistics(buffer)
